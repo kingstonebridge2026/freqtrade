@@ -27,6 +27,19 @@ cat > $CONFIG_PATH <<EOL
     "name": "${FREQTRADE__EXCHANGE__NAME:-binance}",
     "key": "${FREQTRADE__EXCHANGE__KEY}",
     "secret": "${FREQTRADE__EXCHANGE__SECRET}",
+    "pair_whitelist": [
+      "BTC/USDT",
+      "ETH/USDT",
+      "SOL/USDT",
+      "BNB/USDT",
+      "XRP/USDT",
+      "ADA/USDT",
+      "DOT/USDT"
+    ],
+    "pair_blacklist": [
+      ".*(BNB|BULL|BEAR|UP|DOWN|HALF|STUPID|SUSD|TUSD|PAX|BUSD|USDC|DAI)/.*",
+      ".*(AUD|BRZ|CAD|CHF|EUR|GBP|HKD|IDRT|JPY|NGN|PLN|RON|RUB|SGD|TRY|UAH|ZAR)/.*"
+    ],
     "ccxt_config": {},
     "ccxt_async_config": {}
   },
@@ -48,8 +61,11 @@ cat > $CONFIG_PATH <<EOL
   },
   "pairlists": [
     {
-      "method": "StaticPairList",
-      "pairs": ["BTC/USDT", "ETH/USDT"]
+      "method": "VolumePairlist",
+      "number_assets": 20,
+      "sort_key": "quoteVolume",
+      "min_value": 0,
+      "refresh_period": 1800
     }
   ],
   "telegram": {
@@ -61,5 +77,5 @@ cat > $CONFIG_PATH <<EOL
 EOL
 
 echo "Starting Freqtrade..."
-# Use the -s flag to explicitly tell Freqtrade which strategy to load
+# Launching with the strategy flag and the generated config
 freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
