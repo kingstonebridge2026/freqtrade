@@ -24,16 +24,34 @@ echo "Creating config.json from ENV vars..."
 cat > $CONFIG_PATH <<EOL
 {
   "exchange": {
-    "name": "${FREQTRADE__EXCHANGE__NAME}",
+    "name": "${FREQTRADE__EXCHANGE__NAME:-binance}",
     "key": "${FREQTRADE__EXCHANGE__KEY}",
-    "secret": "${FREQTRADE__EXCHANGE__SECRET}"
+    "secret": "${FREQTRADE__EXCHANGE__SECRET}",
+    "ccxt_config": {},
+    "ccxt_async_config": {}
   },
   "dry_run": ${FREQTRADE__DRY_RUN:-true},
   "stake_currency": "${FREQTRADE__STAKE_CURRENCY:-USDT}",
   "stake_amount": "${FREQTRADE__STAKE_AMOUNT:-unlimited}",
   "trading_mode": "${FREQTRADE__TRADING_MODE:-spot}",
   "max_open_trades": ${FREQTRADE__MAX_OPEN_TRADES:-5},
-  "pairlists": [],
+  "strategy": "NostalgiaForInfinityX7",
+  "entry_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "exit_pricing": {
+    "price_side": "same",
+    "use_order_book": true,
+    "order_book_top": 1
+  },
+  "pairlists": [
+    {
+      "method": "StaticPairList",
+      "pairs": ["BTC/USDT", "ETH/USDT"]
+    }
+  ],
   "telegram": {
     "enabled": ${FREQTRADE__TELEGRAM_ENABLED:-false},
     "token": "${FREQTRADE__TELEGRAM_TOKEN:-}",
@@ -43,4 +61,5 @@ cat > $CONFIG_PATH <<EOL
 EOL
 
 echo "Starting Freqtrade..."
-freqtrade trade -c $CONFIG_PATH
+# Use the -s flag to explicitly tell Freqtrade which strategy to load
+freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
