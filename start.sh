@@ -61,7 +61,7 @@ cat > $CONFIG_PATH <<EOL
   },
   "pairlists": [
     {
-      "method": "VolumePairlist",
+      "method": "VolumePairList",
       "number_assets": 20,
       "sort_key": "quoteVolume",
       "min_value": 0,
@@ -77,5 +77,4 @@ cat > $CONFIG_PATH <<EOL
 EOL
 
 echo "Starting Freqtrade..."
-# Launching with the strategy flag and the generated config
 freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
