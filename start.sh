@@ -2,32 +2,33 @@
 #!/bin/bash
 set -e
 
-echo "Starting Freqtrade setup with ENV vars..."
-
-# Create required directories
+echo "Creating strategy directory..."
 mkdir -p /freqtrade/user_data/strategies
 mkdir -p /freqtrade/user_data/data/binance
 
-# Download your strategy file if not exists
-STRATEGY_URL="https://raw.githubusercontent.com/kingstonebridge2026/freqtrade/develop/user_data/NostalgiaForInfinityX7.py"
-STRATEGY_PATH="/freqtrade/user_data/strategies/NostalgiaForInfinityX7.py"
+# Download strategy repository tarball
+echo "Downloading strategy repository (tar)..."
+curl -L \
+https://github.com/iterativv/NostalgiaForInfinity/archive/refs/heads/main.tar.gz \
+-o /tmp/nfi.tar.gz
 
-if [ ! -f "$STRATEGY_PATH" ]; then
-    echo "Downloading strategy..."
-    curl -fsSL $STRATEGY_URL -o $STRATEGY_PATH
-else
-    echo "Strategy already exists."
-fi
+# Extract the tarball
+echo "Extracting strategy..."
+tar -xzf /tmp/nfi.tar.gz -C /tmp
 
-# Create config.json if not exists
+# Copy strategy file
+echo "Copying strategy file..."
+cp /tmp/NostalgiaForInfinity-main/NostalgiaForInfinityX7.py \
+/freqtrade/user_data/strategies/
+
+# Create config.json if it doesn't exist
 CONFIG_PATH="/freqtrade/user_data/config.json"
-
 if [ ! -f "$CONFIG_PATH" ]; then
     echo "Creating default config.json..."
     freqtrade new-config --config $CONFIG_PATH
 fi
 
-# Replace config values with ENV vars
+# Inject ENV vars into config.json
 echo "Injecting ENV vars into config.json..."
 jq '.exchange.key = env.FREQTRADE__EXCHANGE__KEY |
     .exchange.secret = env.FREQTRADE__EXCHANGE__SECRET |
@@ -36,5 +37,5 @@ jq '.exchange.key = env.FREQTRADE__EXCHANGE__KEY |
     $CONFIG_PATH > tmp.json && mv tmp.json $CONFIG_PATH
 
 # Start Freqtrade
-echo "Starting Freqtrade..."
+echo "Starting freqtrade..."
 freqtrade trade -c $CONFIG_PATH
