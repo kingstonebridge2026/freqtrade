@@ -1,21 +1,35 @@
-
 #!/bin/bash
 set -e
 
-echo "Creating strategy directory..."
+echo "Starting Freqtrade setup..."
+
+# Create required directories
 mkdir -p /freqtrade/user_data/strategies
+mkdir -p /freqtrade/user_data/data/binance
 
-echo "Downloading strategy repository (tar)..."
-curl -L \
-https://github.com/iterativv/NostalgiaForInfinity/archive/refs/heads/main.tar.gz \
--o /tmp/nfi.tar.gz
+# Download your strategy file
+STRATEGY_URL="https://raw.githubusercontent.com/kingstonebridge2026/freqtrade/develop/user_data/NostalgiaForInfinityX7.py"
+STRATEGY_PATH="/freqtrade/user_data/strategies/NostalgiaForInfinityX7.py"
 
-echo "Extracting strategy..."
-tar -xzf /tmp/nfi.tar.gz -C /tmp
+if [ ! -f "$STRATEGY_PATH" ]; then
+    echo "Downloading strategy..."
+    curl -fsSL $STRATEGY_URL -o $STRATEGY_PATH
+else
+    echo "Strategy already exists."
+fi
 
-echo "Copying strategy file..."
-cp /tmp/NostalgiaForInfinity-main/NostalgiaForInfinityX7.py \
-/freqtrade/user_data/strategies/
+# Check if config.json exists
+CONFIG_PATH="/freqtrade/user_data/config.json"
 
-echo "Starting freqtrade..."
-freqtrade trade -c config.json
+if [ ! -f "$CONFIG_PATH" ]; then
+    echo "Creating default config.json..."
+    freqtrade new-config --config $CONFIG_PATH
+    echo "Config.json created at $CONFIG_PATH"
+else
+    echo "Config.json already exists."
+fi
+
+# Start Freqtrade in dry-run mode
+echo "Starting Freqtrade..."
+freqtrade trade -c $CONFIG_PATH
+
