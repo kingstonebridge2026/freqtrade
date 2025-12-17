@@ -39,3 +39,5 @@ jq '.exchange.key = env.FREQTRADE__EXCHANGE__KEY |
 # Start Freqtrade
 echo "Starting freqtrade..."
 freqtrade trade -c $CONFIG_PATH
+
+freqtrade trade -c /freqtrade/user_data/config.json
