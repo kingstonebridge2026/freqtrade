@@ -1,14 +1,20 @@
 #!/bin/bash
-
 set -e
 
 echo "Creating strategy directory..."
 mkdir -p /freqtrade/user_data/strategies
 
-echo "Downloading strategy..."
-curl -fsSL \
-https://raw.githubusercontent.com/kingstonebridge2026/freqtrade.git/develop/NostalgiaForInfinityX7.py \
--o /freqtrade/user_data/strategies/NostalgiaForInfinityX7.py
+echo "Downloading strategy repository..."
+curl -L \
+https://github.com/iterativv/NostalgiaForInfinity/archive/refs/heads/main.zip \
+-o /tmp/nfi.zip
 
-echo "Starting freqtrade with custom config..."
+echo "Unzipping..."
+unzip /tmp/nfi.zip -d /tmp
+
+echo "Copying strategy file..."
+cp /tmp/NostalgiaForInfinity-main/NostalgiaForInfinityX7.py \
+/freqtrade/user_data/strategies/
+
+echo "Starting freqtrade..."
 freqtrade trade -c config.json
