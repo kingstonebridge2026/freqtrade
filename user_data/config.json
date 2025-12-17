@@ -1,96 +1,42 @@
+
 {
-    "$schema": "https://schema.freqtrade.io/schema.json",
-
-    "max_open_trades": 5,
-    "stake_currency": "USDT",
-    "stake_amount": "unlimited",
-    "tradable_balance_ratio": 0.99,
-
-    "fiat_display_currency": "USD",
-    "timeframe": "5m",
-    "dry_run": true,
-    "cancel_open_orders_on_exit": false,
-
-    "unfilledtimeout": {
-        "entry": 10,
-        "exit": 10,
-        "exit_timeout_count": 0,
-        "unit": "minutes"
+  "dry_run": true,
+  "exchange": {
+    "name": "binance",
+    "key": "FREQTRADE__EXCHANGE__KEY",
+    "secret": "FREQTRADE__EXCHANGE__SECRET",
+    "ccxt_config": {
+      "enableRateLimit": true
     },
-
-    "entry_pricing": {
-        "price_side": "same",
-        "use_order_book": true,
-        "order_book_top": 1,
-        "price_last_balance": 0.0,
-        "check_depth_of_market": {
-            "enabled": false,
-            "bids_to_ask_delta": 1
-        }
-    },
-
-    "exit_pricing": {
-        "price_side": "same",
-        "use_order_book": true,
-        "order_book_top": 1
-    },
-
-    "exchange": {
-        "name": "binance",
-        "key": "${FREQTRADE__EXCHANGE__KEY}",
-        "secret": "${FREQTRADE__EXCHANGE__SECRET}",
-
-        "ccxt_config": {
-            "enableRateLimit": true
-        },
-        "ccxt_async_config": {},
-
-        "pair_whitelist": [
-            "BTC/USDT",
-            "ETH/USDT",
-            "ALGO/USDT",
-            "ATOM/USDT",
-            "BAT/USDT",
-            "BCH/USDT",
-            "EOS/USDT",
-            "LINK/USDT",
-            "LTC/USDT",
-            "XMR/USDT",
-            "XRP/USDT",
-            "XTZ/USDT"
-        ],
-
-        "pair_blacklist": [
-            "BNB/.*"
-        ]
-    },
-
-    "pairlists": [
-        { "method": "StaticPairList" }
-    ],
-
-    "telegram": {
-        "enabled": false,
-        "token": "your_telegram_token",
-        "chat_id": "your_telegram_chat_id"
-    },
-
-    "api_server": {
-        "enabled": true,
-        "listen_ip_address": "0.0.0.0",
-        "listen_port": 8080,
-        "verbosity": "error",
-        "jwt_secret_key": "change_this_secret",
-        "CORS_origins": [],
-        "username": "admin",
-        "password": "change_this_password"
-    },
-
-    "bot_name": "freqtrade",
-    "initial_state": "running",
-    "force_entry_enable": false,
-
-    "internals": {
-        "process_throttle_secs": 5
-    }
+    "pair_whitelist": ["BTC/USDT", "ETH/USDT"],
+    "pair_blacklist": []
+  },
+  "bot_name": "FreqtradeBot",
+  "timeframe": "5m",
+  "stake_currency": "USDT",
+  "stake_amount": 50,
+  "max_open_trades": 5,
+  "position_adjustment_enable": false,
+  "order_types": {
+    "buy": "limit",
+    "sell": "limit",
+    "stoploss": "limit",
+    "stoploss_on_exchange": false,
+    "stoploss_on_exchange_interval": 60,
+    "take_profit": "limit",
+    "trailing_stop": false
+  },
+  "strategy": "NostalgiaForInfinityX7",
+  "user_data_dir": "/freqtrade/user_data",
+  "logging": {
+    "logfile": "freqtrade.log",
+    "loglevel": "INFO",
+    "color": true
+  },
+  "telegram": {
+    "enabled": false
+  },
+  "api_server": {
+    "enabled": false
+  }
 }
