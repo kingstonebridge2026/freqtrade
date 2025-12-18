@@ -1,37 +1,55 @@
+# --- Do not remove these libs ---
 from freqtrade.strategy import IStrategy
+from typing import Dict, List
+from functools import reduce
 from pandas import DataFrame
+# --------------------------------
 import talib.abstract as ta
+import numpy as np
 import freqtrade.vendor.qtpylib.indicators as qtpylib
+import datetime
+from freqtrade.persistence import Trade
+from freqtrade.strategy import DecimalParameter, IntParameter, BooleanParameter
 
 class TheSnapScalper(IStrategy):
+    """
+    SMAOffsetStrategy - Famous Community Scalper
+    Optimized for 1m and 5m timeframes.
+    """
     INTERFACE_VERSION = 3
-    timeframe = '1m' # Set to 1m for High Frequency
 
-    # ROI: Very aggressive. Exit at 1% or after 5 mins to free up slots.
+    # ROI table:
     minimal_roi = {
-        "0": 0.01,      # 1% profit
-        "5": 0.005      # 0.5% profit after 5 mins
+        "0": 0.05,      # 5% 
+        "10": 0.01,     # 1% after 10 mins
+        "20": 0.005,    # 0.5% after 20 mins
+        "40": 0         # Exit at break-even after 40 mins
     }
-    
-    stoploss = -0.015   # 1.5% Stoploss
+
+    stoploss = -0.10
+    timeframe = '1m'
+
+    # SMAOffset parameters
+    base_nb_candles_buy = 20
+    base_nb_candles_sell = 20
+    low_offset = 0.98  # Buy 2% below SMA
+    high_offset = 1.01 # Sell 1% above SMA
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # Use a wide Bollinger Band (2.5 Std Dev) to find true extremes
-        bollinger = qtpylib.bollinger_bands(dataframe['close'], window=20, stds=2.5)
-        dataframe['bb_lower'] = bollinger['lower']
-        dataframe['bb_mid'] = bollinger['mid']
+        # Calculate SMAs
+        dataframe['sma_buy'] = ta.SMA(dataframe, timeperiod=self.base_nb_candles_buy)
+        dataframe['sma_sell'] = ta.SMA(dataframe, timeperiod=self.base_nb_candles_sell)
         
-        # Fast RSI (7) to capture micro-momentum
-        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=7)
-        
+        # Required for SMAOffset logic
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['close'] < dataframe['bb_lower']) &  # Price touched extreme bottom
-                (dataframe['rsi'] < 20) &                      # Deeply oversold
-                (dataframe['close'] > dataframe['close'].shift(1)) # Price is ticking up
+                (dataframe['close'] < (dataframe['sma_buy'] * self.low_offset)) &
+                (dataframe['rsi'] < 35) &
+                (dataframe['volume'] > 0)
             ),
             'enter_long'] = 1
         return dataframe
@@ -39,8 +57,7 @@ class TheSnapScalper(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe['close'] > dataframe['bb_mid']) |    # Exit at the mean price
-                (dataframe['rsi'] > 70)                         # Or if momentum spikes
+                (dataframe['close'] > (dataframe['sma_sell'] * self.high_offset))
             ),
             'exit_long'] = 1
         return dataframe
