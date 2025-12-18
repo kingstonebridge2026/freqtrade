@@ -25,6 +25,31 @@ cat > $CONFIG_PATH <<EOL
       ".*(AUD|BRZ|CAD|CHF|EUR|GBP|HKD|IDRT|JPY|NGN|PLN|RON|RUB|SGD|TRY|UAH|ZAR)/.*"
     ]
   },
+
+  "telegram": {
+    "enabled": true,
+    "token": "${TELEGRAM_TOKEN}",
+    "chat_id": "${TELEGRAM_CHAT_ID}",
+    "keyboard": [
+      ["/daily", "/profit", "/balance"],
+      ["/status table", "/performance", "/count"],
+      ["/reload_config", "/show_config", "/help"]
+    ],
+    "notification_settings": {
+      "status": "on",
+      "entry": "on",
+      "exit": "on",
+      "buy": "on",
+      "sell": "on",
+      "buy_fill": "on",
+      "sell_fill": "on",
+      "buy_cancel": "off",
+      "sell_cancel": "off",
+      "protection_trigger": "on",
+      "protection_trigger_global": "on"
+    }
+  },
+  
   "dry_run": ${FREQTRADE__DRY_RUN:-true},
   "stake_currency": "${FREQTRADE__STAKE_CURRENCY:-USDT}",
   "stake_amount": "unlimited",
