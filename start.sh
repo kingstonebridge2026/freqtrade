@@ -5,9 +5,6 @@ echo "Initializing Scalper Environment..."
 mkdir -p /freqtrade/user_data/strategies
 mkdir -p /freqtrade/user_data/data/binance
 
-# Note: We assume TheSnapScalper.py is already in your repo. 
-# If it's not, you can add a curl command here to fetch it.
-
 # Create config.json optimized for HFT
 CONFIG_PATH="/freqtrade/user_data/config.json"
 echo "Generating HFT Config..."
@@ -18,7 +15,7 @@ cat > $CONFIG_PATH <<EOL
     "key": "${FREQTRADE__EXCHANGE__KEY}",
     "secret": "${FREQTRADE__EXCHANGE__SECRET}",
     "pair_whitelist": [
-      "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT"
+      "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "XRP/USDT", "ADA/USDT"
     ],
     "pair_blacklist": [
       ".*(BNB|BULL|BEAR|UP|DOWN|HALF|STUPID|SUSD|TUSD|PAX|BUSD|USDC|DAI)/.*",
@@ -39,12 +36,10 @@ cat > $CONFIG_PATH <<EOL
       "status": "on",
       "entry": "on",
       "exit": "on",
-      "buy": "on",
-      "sell": "on",
-      "buy_fill": "on",
-      "sell_fill": "on",
-      "buy_cancel": "off",
-      "sell_cancel": "off",
+      "entry_fill": "on",
+      "exit_fill": "on",
+      "entry_cancel": "off",
+      "exit_cancel": "off",
       "protection_trigger": "on",
       "protection_trigger_global": "on"
     }
@@ -87,6 +82,6 @@ cat > $CONFIG_PATH <<EOL
 EOL
 
 echo "Launching TheSnapScalper..."
-# Use --strategy-path to ensure it finds the file in user_data/strategies
+# Note: Ensure TheSnapScalper.py is in your user_data/strategies folder in your GitHub repo
 freqtrade trade -c $CONFIG_PATH --strategy TheSnapScalper --strategy-path /freqtrade/user_data/strategies --db-url sqlite:///tradesv3.sqlite
 
