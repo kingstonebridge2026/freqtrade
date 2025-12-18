@@ -3,7 +3,7 @@ from pandas import DataFrame
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
 
-class SnapScalper(IStrategy):
+class TheSnapScalper(IStrategy):
     INTERFACE_VERSION = 3
     timeframe = '1m' # Set to 1m for High Frequency
 
