@@ -1,26 +1,16 @@
-
 #!/bin/bash
 set -e
 
-echo "Creating required directories..."
+echo "Initializing Scalper Environment..."
 mkdir -p /freqtrade/user_data/strategies
 mkdir -p /freqtrade/user_data/data/binance
 
-# Download strategy repository tarball
-echo "Downloading strategy repository..."
-curl -L \
-https://github.com/iterativv/NostalgiaForInfinity/archive/refs/heads/main.tar.gz \
--o /tmp/nfi.tar.gz
+# Note: We assume TheSnapScalper.py is already in your repo. 
+# If it's not, you can add a curl command here to fetch it.
 
-echo "Extracting strategy..."
-tar -xzf /tmp/nfi.tar.gz -C /tmp
-
-echo "Copying strategy file..."
-cp /tmp/NostalgiaForInfinity-main/NostalgiaForInfinityX7.py /freqtrade/user_data/strategies/
-
-# Create config.json from ENV vars (non-interactive)
+# Create config.json optimized for HFT
 CONFIG_PATH="/freqtrade/user_data/config.json"
-echo "Creating config.json from ENV vars..."
+echo "Generating HFT Config..."
 cat > $CONFIG_PATH <<EOL
 {
   "exchange": {
@@ -28,53 +18,50 @@ cat > $CONFIG_PATH <<EOL
     "key": "${FREQTRADE__EXCHANGE__KEY}",
     "secret": "${FREQTRADE__EXCHANGE__SECRET}",
     "pair_whitelist": [
-      "BTC/USDT",
-      "ETH/USDT",
-      "SOL/USDT",
-      "BNB/USDT",
-      "XRP/USDT",
-      "ADA/USDT",
-      "DOT/USDT"
+      "BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT"
     ],
     "pair_blacklist": [
       ".*(BNB|BULL|BEAR|UP|DOWN|HALF|STUPID|SUSD|TUSD|PAX|BUSD|USDC|DAI)/.*",
       ".*(AUD|BRZ|CAD|CHF|EUR|GBP|HKD|IDRT|JPY|NGN|PLN|RON|RUB|SGD|TRY|UAH|ZAR)/.*"
-    ],
-    "ccxt_config": {},
-    "ccxt_async_config": {}
+    ]
   },
   "dry_run": ${FREQTRADE__DRY_RUN:-true},
   "stake_currency": "${FREQTRADE__STAKE_CURRENCY:-USDT}",
-  "stake_amount": "${FREQTRADE__STAKE_AMOUNT:-unlimited}",
+  "stake_amount": "unlimited",
   "trading_mode": "${FREQTRADE__TRADING_MODE:-spot}",
-  "max_open_trades": ${FREQTRADE__MAX_OPEN_TRADES:-5},
-  "strategy": "NostalgiaForInfinityX7",
+  "max_open_trades": 15,
+  "strategy": "TheSnapScalper",
+  "timeframe": "1m",
   "entry_pricing": {
     "price_side": "same",
     "use_order_book": true,
     "order_book_top": 1
   },
   "exit_pricing": {
-    "price_side": "same",
-    "use_order_book": true,
-    "order_book_top": 1
+    "price_side": "other", 
+    "use_order_book": true
+  },
+  "order_types": {
+    "entry": "limit",
+    "exit": "market",
+    "emergency_exit": "market",
+    "stoploss": "market",
+    "stoploss_on_exchange": false
   },
   "pairlists": [
     {
       "method": "VolumePairList",
-      "number_assets": 20,
+      "number_assets": 80,
       "sort_key": "quoteVolume",
-      "min_value": 0,
-      "refresh_period": 1800
-    }
-  ],
-  "telegram": {
-    "enabled": ${FREQTRADE__TELEGRAM_ENABLED:-false},
-    "token": "${FREQTRADE__TELEGRAM_TOKEN:-}",
-    "chat_id": "${FREQTRADE__TELEGRAM_CHAT_ID:-}"
-  }
+      "refresh_period": 900
+    },
+    {"method": "AgeFilter", "min_days_listed": 10},
+    {"method": "SpreadFilter", "max_spread_ratio": 0.005}
+  ]
 }
 EOL
 
-echo "Starting Freqtrade..."
-freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7 --db-url sqlite:///tradesv3.dryrun.sqlite
+echo "Launching TheSnapScalper..."
+# Use --strategy-path to ensure it finds the file in user_data/strategies
+freqtrade trade -c $CONFIG_PATH --strategy TheSnapScalper --strategy-path /freqtrade/user_data/strategies --db-url sqlite:///tradesv3.sqlite
+
