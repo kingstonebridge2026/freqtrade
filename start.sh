@@ -77,4 +77,4 @@ cat > $CONFIG_PATH <<EOL
 EOL
 
 echo "Starting Freqtrade..."
-freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
+freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7 --db-url sqlite:///tradesv3.dryrun.sqlite
