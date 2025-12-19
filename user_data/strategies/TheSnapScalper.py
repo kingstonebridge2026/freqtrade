@@ -1,26 +1,28 @@
+
 # --- Do not remove these libs ---
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from freqtrade.strategy import IStrategy
-import freqtrade.vendor.qtpylib.indicators as qtpylib
-
+import pandas_ta as ta
 
 class TheSnapScalper(IStrategy):
     """
-    TheSnapScalper
-    Freqtrade 2025.12 / Railway SAFE
+    TheSnapScalper - Optimized for Freqtrade 2025.12
+    A high-frequency scalping strategy using Mean Reversion.
     """
 
     INTERFACE_VERSION = 3
 
+    # Strategy parameters
     timeframe = "1m"
     can_short = False
-
-    startup_candle_count = 50
+    
+    # Ensures indicators have enough data before strategy starts
+    startup_candle_count: int = 50
     process_only_new_candles = True
 
-    # === RISK ===
+    # ROI table: 2% profit immediately, 1% after 10m, break-even after 20m
     minimal_roi = {
         "0": 0.02,
         "10": 0.01,
@@ -29,7 +31,7 @@ class TheSnapScalper(IStrategy):
 
     stoploss = -0.08
 
-    # === INDICATOR SETTINGS ===
+    # Hyperoptable parameters
     base_nb_candles_buy = 20
     base_nb_candles_sell = 20
     low_offset = 0.985
@@ -39,29 +41,26 @@ class TheSnapScalper(IStrategy):
     rsi_sell = 70
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe["sma_buy"] = qtpylib.sma(
-            dataframe["close"], self.base_nb_candles_buy
-        )
+        # Buy/Sell Moving Averages
+        dataframe["sma_buy"] = ta.sma(dataframe["close"], length=self.base_nb_candles_buy)
+        dataframe["sma_sell"] = ta.sma(dataframe["close"], length=self.base_nb_candles_sell)
 
-        dataframe["sma_sell"] = qtpylib.sma(
-            dataframe["close"], self.base_nb_candles_sell
-        )
+        # RSI calculation using pandas_ta
+        dataframe["rsi"] = ta.rsi(dataframe["close"], length=14)
 
-        dataframe["rsi"] = qtpylib.rsi(
-            dataframe["close"], period=14
-        )
-
-        dataframe["volume_mean"] = dataframe["volume"].rolling(20).mean()
+        # Volume Analysis
+        dataframe["volume_mean"] = dataframe["volume"].rolling(window=20).mean()
 
         return dataframe
 
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe["close"] < dataframe["sma_buy"] * self.low_offset) &
-                (dataframe["rsi"] < self.rsi_buy) &
-                (dataframe["volume"] > dataframe["volume_mean"]) &
-                (dataframe["volume"] > 0)
+                # Use .shift(1) to ensure we are looking at the last completed candle
+                (dataframe["close"].shift(1) < (dataframe["sma_buy"].shift(1) * self.low_offset)) &
+                (dataframe["rsi"].shift(1) < self.rsi_buy) &
+                (dataframe["volume"].shift(1) > dataframe["volume_mean"].shift(1)) &
+                (dataframe["volume"] > 0) # Ensure there is actual liquidity
             ),
             "enter_long",
         ] = 1
@@ -71,11 +70,11 @@ class TheSnapScalper(IStrategy):
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe.loc[
             (
-                (dataframe["close"] > dataframe["sma_sell"] * self.high_offset) |
-                (dataframe["rsi"] > self.rsi_sell)
+                # Exit when price recovers above SMA or RSI becomes overbought
+                (dataframe["close"].shift(1) > (dataframe["sma_sell"].shift(1) * self.high_offset)) |
+                (dataframe["rsi"].shift(1) > self.rsi_sell)
             ),
             "exit_long",
         ] = 1
 
         return dataframe
-
