@@ -10,44 +10,88 @@ mkdir -p $USER_DATA_PATH
 echo "Generating HFT Config..."
 cat > $CONFIG_PATH <<EOL
 {
-  "exchange": {
-    "name": "${FREQTRADE__EXCHANGE__NAME:-binance}",
-    "key": "${FREQTRADE__EXCHANGE__KEY}",
-    "secret": "${FREQTRADE__EXCHANGE__SECRET}",
-    "pair_whitelist": ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "XRP/USDT"],
-    "pair_blacklist": [".*(BNB|BULL|BEAR|UP|DOWN)/.*"]
-  },
-  "dry_run": ${FREQTRADE__DRY_RUN:-true},
-  "stake_currency": "USDT",
-  "stake_amount": "unlimited",
-  "max_open_trades": 15,
-  "strategy": "TheSnapScalper",
-  "timeframe": "1m",
-  "entry_pricing": {
-    "price_side": "same",
-    "use_order_book": true,
-    "order_book_top": 1
-  },
-  "exit_pricing": {
-    "price_side": "other",
-    "use_order_book": true,
-    "order_book_top": 1
-  },
-  "order_types": {
-    "entry": "limit",
-    "exit": "market",
-    "emergency_exit": "market",
-    "stoploss": "market",
-    "stoploss_on_exchange": false
-  },
-  "pairlists": [
-    {
-      "method": "VolumePairList",
-      "number_assets": 50,
-      "sort_key": "quoteVolume"
+    "$schema": "https://schema.freqtrade.io/schema.json",
+
+    "max_open_trades": 30,
+    "stake_currency": "USDT",
+    "stake_amount": "unlimited",
+    "tradable_balance_ratio": 0.99,
+
+    "fiat_display_currency": "USD",
+    "timeframe": "5m",
+    "dry_run": true,
+    "dry_run_wallet": 10000, 
+    "cancel_open_orders_on_exit": false,
+
+    "unfilledtimeout": {
+        "entry": 5,
+        "exit": 5,
+        "exit_timeout_count": 0,
+        "unit": "minutes"
+    },
+
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exchange": {
+        "name": "binance",
+        "key": "${FREQTRADE__EXCHANGE__KEY}",
+        "secret": "${FREQTRADE__EXCHANGE__SECRET}",
+        "ccxt_config": {
+            "enableRateLimit": true
+        },
+        "ccxt_async_config": {},
+        "pair_whitelist": [
+            "BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", 
+            "SUI/USDT", "AVAX/USDT", "ADA/USDT", "LINK/USDT", "DOT/USDT",
+            "MATIC/USDT", "LTC/USDT", "SHIB/USDT", "TRX/USDT", "NEAR/USDT"
+        ],
+        "pair_blacklist": [
+            "BNB/.*", "TUSD/.*", "USDC/.*", "EUR/.*", "PAX/.*", "DAI/.*"
+        ]
+    },
+
+    "pairlists": [
+        {
+            "method": "VolumePairList",
+            "number_assets": 20,
+            "sort_key": "quoteVolume",
+            "refresh_period": 1800
+        }
+    ],
+
+    "telegram": {
+        "enabled": false
+    },
+
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080,
+        "verbosity": "info",
+        "jwt_secret_key": "change_this_secret",
+        "username": "admin",
+        "password": "change_this_password"
+    },
+
+    "bot_name": "freqtrade",
+    "initial_state": "running",
+    "force_entry_enable": false,
+
+    "internals": {
+        "process_throttle_secs": 2
     }
-  ]
 }
+
 EOL
 
 echo "Launching TheSnapScalper..."
