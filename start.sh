@@ -20,11 +20,34 @@ cat > $CONFIG_PATH <<EOL
     "dry_run": true,
     "dry_run_wallet": 10000, 
     "cancel_open_orders_on_exit": false,
+
+    "order_types": {
+        "entry": "limit",
+        "exit": "limit",
+        "emergency_exit": "market",
+        "force_entry": "market",
+        "force_exit": "market",
+        "stoploss": "market",
+        "stoploss_on_exchange": false
+    },
+
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": false,
+        "order_book_top": 1
+    },
+
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": false
+    },
+
     "unfilledtimeout": {
-        "entry": 5,
-        "exit": 5,
+        "entry": 10,
+        "exit": 30,
         "unit": "minutes"
     },
+
     "exchange": {
         "name": "binance",
         "key": "${FREQTRADE__EXCHANGE__KEY}",
@@ -37,9 +60,10 @@ cat > $CONFIG_PATH <<EOL
             "SUI/USDT", "AVAX/USDT", "ADA/USDT", "LINK/USDT", "DOT/USDT"
         ],
         "pair_blacklist": [
-            "BNB/.*", "TUSD/.*", "USDC/.*", "EUR/.*", "PAX/.*", "DAI/.*"
+            "BNB/.*", "TUSD/.*", "USDC/.*", "EUR/.*", "PAX/.*", "DAI/.*", ".*DOWN/.*", ".*UP/.*"
         ]
     },
+
     "pairlists": [
         {
             "method": "VolumePairList",
@@ -48,29 +72,22 @@ cat > $CONFIG_PATH <<EOL
             "refresh_period": 1800
         }
     ],
+
     "telegram": {
         "enabled": true,
         "token": "${FREQTRADE__TELEGRAM_TOKEN}",
         "chat_id": "${FREQTRADE__TELEGRAM_CHAT_ID}"
     },
-    "api_server": {
-        "enabled": true,
-        "listen_ip_address": "0.0.0.0",
-        "listen_port": 8080,
-        "verbosity": "info",
-        "jwt_secret_key": "change_this_secret",
-        "username": "admin",
-        "password": "change_this_password"
-    },
-    "bot_name": "NFIX7_Bot",
+
+    "bot_name": "NFIX7_Railway",
     "initial_state": "running",
     "internals": {
-        "process_throttle_secs": 2
+        "process_throttle_secs": 5
     }
 }
 EOL
 
 echo "Launching NostalgiaForInfinityX7..."
-# Ensure the strategy file name matches exactly (minus .py)
+# Make sure NostalgiaForInfinityX7.py is in your user_data/strategies folder
 freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
 
