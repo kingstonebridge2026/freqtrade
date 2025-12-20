@@ -1,25 +1,35 @@
 #!/bin/bash
 set -e
 
-echo "Initializing Environment for NFIX7..."
+echo "Cleaning and Initializing for NFIX7..."
 USER_DATA_PATH="/freqtrade/user_data"
 CONFIG_PATH="$USER_DATA_PATH/config.json"
 
 mkdir -p $USER_DATA_PATH
 
-echo "Generating Configuration..."
 cat > $CONFIG_PATH <<EOL
 {
     "\$schema": "https://schema.freqtrade.io/schema.json",
-    "max_open_trades": 30,
+    "max_open_trades": 15,
     "stake_currency": "USDT",
     "stake_amount": "unlimited",
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
     "timeframe": "5m",
     "dry_run": true,
-    "dry_run_wallet": 10000, 
-    "cancel_open_orders_on_exit": false,
+    "dry_run_wallet": 10000,
+
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
 
     "order_types": {
         "entry": "limit",
@@ -31,46 +41,18 @@ cat > $CONFIG_PATH <<EOL
         "stoploss_on_exchange": false
     },
 
-    "entry_pricing": {
-        "price_side": "other",
-        "use_order_book": false,
-        "order_book_top": 1
-    },
-
-    "exit_pricing": {
-        "price_side": "other",
-        "use_order_book": false
-    },
-
-    "unfilledtimeout": {
-        "entry": 10,
-        "exit": 30,
-        "unit": "minutes"
-    },
-
     "exchange": {
         "name": "binance",
         "key": "${FREQTRADE__EXCHANGE__KEY}",
         "secret": "${FREQTRADE__EXCHANGE__SECRET}",
-        "ccxt_config": {
-            "enableRateLimit": true
-        },
         "pair_whitelist": [
             "BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", 
             "SUI/USDT", "AVAX/USDT", "ADA/USDT", "LINK/USDT", "DOT/USDT"
-        ],
-        "pair_blacklist": [
-            "BNB/.*", "TUSD/.*", "USDC/.*", "EUR/.*", "PAX/.*", "DAI/.*", ".*DOWN/.*", ".*UP/.*"
         ]
     },
 
     "pairlists": [
-        {
-            "method": "VolumePairList",
-            "number_assets": 50,
-            "sort_key": "quoteVolume",
-            "refresh_period": 1800
-        }
+        { "method": "StaticPairList" }
     ],
 
     "telegram": {
@@ -80,14 +62,10 @@ cat > $CONFIG_PATH <<EOL
     },
 
     "bot_name": "NFIX7_Railway",
-    "initial_state": "running",
-    "internals": {
-        "process_throttle_secs": 5
-    }
+    "initial_state": "running"
 }
 EOL
 
-echo "Launching NostalgiaForInfinityX7..."
-# Make sure NostalgiaForInfinityX7.py is in your user_data/strategies folder
-freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
-
+echo "Launching Strategy..."
+# This command tells freqtrade exactly where to look for your .py file
+freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7 --strategy-path /freqtrade/user_data/strategies
