@@ -1,47 +1,30 @@
 #!/bin/bash
 set -e
 
-echo "Initializing Scalper Environment..."
+echo "Initializing Environment for NFIX7..."
 USER_DATA_PATH="/freqtrade/user_data"
 CONFIG_PATH="$USER_DATA_PATH/config.json"
 
 mkdir -p $USER_DATA_PATH
 
-echo "Generating HFT Config..."
+echo "Generating Configuration..."
 cat > $CONFIG_PATH <<EOL
 {
-    "$schema": "https://schema.freqtrade.io/schema.json",
-
+    "\$schema": "https://schema.freqtrade.io/schema.json",
     "max_open_trades": 30,
     "stake_currency": "USDT",
     "stake_amount": "unlimited",
     "tradable_balance_ratio": 0.99,
-
     "fiat_display_currency": "USD",
     "timeframe": "5m",
     "dry_run": true,
     "dry_run_wallet": 10000, 
     "cancel_open_orders_on_exit": false,
-
     "unfilledtimeout": {
         "entry": 5,
         "exit": 5,
-        "exit_timeout_count": 0,
         "unit": "minutes"
     },
-
-    "entry_pricing": {
-        "price_side": "other",
-        "use_order_book": true,
-        "order_book_top": 1
-    },
-
-    "exit_pricing": {
-        "price_side": "other",
-        "use_order_book": true,
-        "order_book_top": 1
-    },
-
     "exchange": {
         "name": "binance",
         "key": "${FREQTRADE__EXCHANGE__KEY}",
@@ -49,30 +32,27 @@ cat > $CONFIG_PATH <<EOL
         "ccxt_config": {
             "enableRateLimit": true
         },
-        "ccxt_async_config": {},
         "pair_whitelist": [
             "BTC/USDT", "ETH/USDT", "SOL/USDT", "XRP/USDT", "DOGE/USDT", 
-            "SUI/USDT", "AVAX/USDT", "ADA/USDT", "LINK/USDT", "DOT/USDT",
-            "MATIC/USDT", "LTC/USDT", "SHIB/USDT", "TRX/USDT", "NEAR/USDT"
+            "SUI/USDT", "AVAX/USDT", "ADA/USDT", "LINK/USDT", "DOT/USDT"
         ],
         "pair_blacklist": [
             "BNB/.*", "TUSD/.*", "USDC/.*", "EUR/.*", "PAX/.*", "DAI/.*"
         ]
     },
-
     "pairlists": [
         {
             "method": "VolumePairList",
-            "number_assets": 20,
+            "number_assets": 50,
             "sort_key": "quoteVolume",
             "refresh_period": 1800
         }
     ],
-
     "telegram": {
-        "enabled": false
+        "enabled": true,
+        "token": "${FREQTRADE__TELEGRAM_TOKEN}",
+        "chat_id": "${FREQTRADE__TELEGRAM_CHAT_ID}"
     },
-
     "api_server": {
         "enabled": true,
         "listen_ip_address": "0.0.0.0",
@@ -82,19 +62,15 @@ cat > $CONFIG_PATH <<EOL
         "username": "admin",
         "password": "change_this_password"
     },
-
-    "bot_name": "freqtrade",
+    "bot_name": "NFIX7_Bot",
     "initial_state": "running",
-    "force_entry_enable": false,
-
     "internals": {
         "process_throttle_secs": 2
     }
 }
-
 EOL
 
-echo "Launching TheSnapScalper..."
-# No --strategy-path needed if your file is in user_data/strategies/
-freqtrade trade -c $CONFIG_PATH --strategy TheSnapScalper
+echo "Launching NostalgiaForInfinityX7..."
+# Ensure the strategy file name matches exactly (minus .py)
+freqtrade trade -c $CONFIG_PATH --strategy NostalgiaForInfinityX7
 
