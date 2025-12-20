@@ -1,4 +1,6 @@
 numpy==2.3.5
+pandas-ta
+finta
 pandas==2.3.3
 bottleneck==1.6.0
 numexpr==2.14.1
